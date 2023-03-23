@@ -1,5 +1,6 @@
 from PIL import Image
 from jinja2 import Environment, PackageLoader, Template
+import boto3
 import string
 import palette
 import math
@@ -12,12 +13,29 @@ class Pattern(object):
     floss_symbol_map = {} # has RGB tuples as keys and the floss identifiers as values
     my_palette = None # What are we making a pattern for?
     image = None # The original image
+    rendered_chart = None
 
     def __init__(self, image, palette_choice):
         self.image = image.convert('RGB')
         # If you need this many symbols, you're doing pixel art wrong
         self.avail_symbols = list(":,.()-=!@#$%^&*+=?;<>~") + list(string.digits) + list(string.ascii_lowercase[::-1]) + list(string.ascii_uppercase[::-1])
         self.my_palette = palette.Palette(palette_choice)
+
+    def build_and_save(self, image_url, image_name):
+        self.build_pattern()
+        self.render_chart('default')
+        self.save_to_s3()
+
+    def save_to_s3(self):
+        aws_client = boto3.client
+
+    def save_to_db(self, user_ref):
+        session = Session()
+        session.add(
+            'pattern_requests',
+            user_ref
+        )
+        session.commit()
 
     def build_pattern(self):
         for row in range(self.image.size[0]):
@@ -76,6 +94,8 @@ class Pattern(object):
         rendered = template.render(self._get_print_context_data())
         with open('renderedchart.html', 'w') as htmlfile:
             htmlfile.write(rendered)
+
+
 
     def _divide_pattern(self, page_size):
 
