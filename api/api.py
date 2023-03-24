@@ -16,5 +16,6 @@ def post_make_pattern(image_url: str, pattern_name: str, user_ref: dict):
 
     new_pattern = Pattern(im, 'dmcfloss')
     new_pattern.build_and_save()
+    new_pattern.save_to_db(user_ref)
 
     return {'chart': new_pattern.rendered_chart}
